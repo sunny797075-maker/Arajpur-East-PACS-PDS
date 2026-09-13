@@ -1,6 +1,6 @@
 ﻿# Arajpur East PACS PDS — Flutter Android app
 
-Native Flutter implementation alongside the original web app. Main entry: `lib/main.dart`. Android package: `in.arajpureastpacs.pds_ration_tracker`. The repository is fixed to `sunny797075-maker/Arajpur-East-PACS-PDS`; `https://github.com` alone is not a repository address.
+Native Flutter implementation alongside the original web app. Main entry: `lib/main.dart`. Android package: `in.arajpureastpacs.pds_ration_tracker`. The private data repository defaults to `sunny797075-maker/Arajpur-East-PACS-PDS-Data`; `https://github.com` alone is not a repository address.
 
 ## Run and build
 
@@ -21,12 +21,14 @@ Release builds deliberately require the owner's signing key; they never silently
 
 ## GitHub setup
 
-1. Use the existing repository `sunny797075-maker/Arajpur-East-PACS-PDS`. Make it private: `data.json` contains personal ration-card and telephone information. The sync engine refuses public repositories.
+1. Use the private repository `sunny797075-maker/Arajpur-East-PACS-PDS-Data`: `data.json` contains personal ration-card and telephone information. The sync engine refuses public repositories.
 2. Create a fine-grained GitHub Personal Access Token, limited to this repository, with **Contents: Read and write**. The token also needs normal repository metadata access. Direct commits must be permitted by the default branch's rules.
 3. Open the app's Settings gear, paste the token, and tap **Save token & sync**. Tokens are encrypted using Android secure storage, obscured in the input, and excluded from backups and commits. The app never logs request headers or tokens.
 4. The engine discovers the default branch and reads/creates `data.json`. It accepts the web app's version 1 or 2 JSON register, migrates version 1, and writes version 2. If you want to migrate existing web records, export them from the browser and place that export as `data.json` in the private repository before your first Flutter sync. The two apps do not share device storage automatically.
 
 No real GitHub commit is required to build or test. Automated network tests use a mock HTTP client. A real token is required to verify live repository access; do not paste it into chat or source files.
+
+The public website remains https://sunny797075-maker.github.io/Arajpur-East-PACS-PDS/. GitHub Pages is not a writable API. Flutter uses https://api.github.com/repos/sunny797075-maker/Arajpur-East-PACS-PDS-Data/contents/data.json for background sync. Settings displays both endpoints. You may override the data repository at build time with --dart-define=PDS_REPOSITORY=owner/repository; it must be private. Never use a token as a dart-define.
 
 ## Local persistence and sync behavior
 
@@ -63,3 +65,4 @@ Calling opens the native dialer using `tel:` and does not require direct-call pe
 - https://pub.dev/packages/flutter_secure_storage
 - https://pub.dev/packages/connectivity_plus
 - https://pub.dev/packages/url_launcher
+

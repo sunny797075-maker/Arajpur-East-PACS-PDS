@@ -19,7 +19,14 @@ class RemoteRegister {
 }
 
 class GitHubSync {
-  static const repository = 'sunny797075-maker/Arajpur-East-PACS-PDS';
+  static const websiteUrl =
+      'https://sunny797075-maker.github.io/Arajpur-East-PACS-PDS/';
+  static const repository = String.fromEnvironment(
+    'PDS_REPOSITORY',
+    defaultValue: 'sunny797075-maker/Arajpur-East-PACS-PDS-Data',
+  );
+  static const databaseApiUrl =
+      'https://api.github.com/repos/$repository/contents/data.json';
   final http.Client client;
   GitHubSync(this.client);
   Map<String, String> headers(String token) => {
@@ -84,9 +91,7 @@ class GitHubSync {
     final branch = repo['default_branch'] as String;
     final response = await client
         .get(
-          Uri.https('api.github.com', '/repos/$repository/contents/data.json', {
-            'ref': branch,
-          }),
+          Uri.parse(databaseApiUrl).replace(queryParameters: {'ref': branch}),
           headers: headers(token),
         )
         .timeout(const Duration(seconds: 25));

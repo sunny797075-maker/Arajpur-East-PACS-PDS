@@ -920,6 +920,45 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 const SelectableText(GitHubSync.repository),
                 const SizedBox(height: 12),
                 const Text(
+                  'Database API',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SelectableText(GitHubSync.databaseApiUrl),
+                const SizedBox(height: 12),
+                const Text(
+                  'Published website',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SelectableText(GitHubSync.websiteUrl),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Open PDS website'),
+                  onPressed: () async {
+                    try {
+                      final opened = await launchUrl(
+                        Uri.parse(GitHubSync.websiteUrl),
+                        mode: LaunchMode.externalApplication,
+                      );
+                      if (!opened && mounted) {
+                        setState(
+                          () =>
+                              error =
+                                  'No browser is available to open the website.',
+                        );
+                      }
+                    } catch (_) {
+                      if (mounted) {
+                        setState(() => error = 'Could not open the website.');
+                      }
+                    }
+                  },
+                ),
+                const Text(
+                  'GitHub Pages displays the website. Background sync reads and writes data.json through the authenticated GitHub REST API. Browser-local records do not automatically sync to this phone.',
+                  style: TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                const Text(
                   'Use a private repository and a fine-grained token limited to this repository with Contents: Read and write. Sync uses data.json on its default branch. The token is encrypted with Android secure storage and is never included in backups.',
                 ),
                 const SizedBox(height: 16),
