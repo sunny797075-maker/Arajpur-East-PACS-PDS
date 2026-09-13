@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#176344">
+  <meta name="description" content="Offline, on-device PDS beneficiary and monthly ration distribution tracker.">
+  <title>Arajpur East PACS PDS · Ration Management Tracker</title>
+  <!-- Optional enhancement only: all required styles and behavior are bundled locally. -->
+  <script async src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/storage.js"></script>
+  <script defer src="js/tracker.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">🌾</div>
+      <div class="brand-copy"><p class="eyebrow">YOUR COMMUNITY. WELL SUPPLIED.</p><h1>Arajpur East PACS PDS</h1><p class="subtitle">Ration Management Tracker</p></div>
+      <span class="local-badge">● On-device storage</span>
+    </header>
+    <main>
+      <div id="storage-error" class="error-banner" role="alert" hidden></div>
+      <section class="overview" aria-labelledby="overview-title">
+        <div class="section-heading overview-heading"><div><p class="eyebrow">MONTHLY OVERVIEW</p><h2 id="overview-title">Every family counts.</h2></div><label class="month-control" for="active-month">Distribution month<select id="active-month" aria-describedby="month-context"></select></label></div>
+        <p id="month-context" class="field-hint" aria-live="polite"></p>
+        <div class="stats">
+          <article class="stat"><span>Total cards</span><strong id="total-cards">0</strong><small>Registered families</small></article>
+          <article class="stat"><span>Distributed families</span><strong id="distributed-cards">0</strong><small>For selected month</small></article>
+          <article class="stat"><span>Grain distributed</span><strong><span id="total-grain">0</span> <em>kg</em></strong><small id="grain-detail">Wheat 0 · Rice 0 kg</small></article>
+          <article class="stat"><span>Pending families</span><strong id="pending-cards">0</strong><small id="distributed-detail">0 families served</small></article>
+        </div>
+        <div class="progress-label"><span>Monthly distribution progress</span><strong id="progress-label">0%</strong></div>
+        <progress id="distribution-progress" max="100" value="0" aria-label="Monthly distribution progress"></progress>
+      </section>
+      <nav class="tabs" role="tablist" aria-label="Workspace">
+        <button id="tab-distribution" role="tab" aria-selected="true" aria-controls="distribution-panel" data-tab="distribution">🌾 <span>Distribution &amp; Sale</span></button>
+        <button id="tab-beneficiaries" role="tab" aria-selected="false" aria-controls="beneficiaries-panel" tabindex="-1" data-tab="beneficiaries">📝 <span>Add Beneficiary</span></button>
+      </nav>
+      <section id="distribution-panel" role="tabpanel" aria-labelledby="tab-distribution">
+        <div class="section-heading"><div><h2>Distribution register</h2><p class="muted">Find a family, record a sale, or call those remaining.</p></div></div>
+        <label class="search-label" for="sale-search">Search beneficiaries</label>
+        <input id="sale-search" type="search" placeholder="Search name, ration card or phone…" autocomplete="off">
+        <div class="filter-row" role="group" aria-label="Filter distribution status">
+          <button class="filter active" data-filter="all" aria-pressed="true">All families</button>
+          <button class="filter" data-filter="pending" aria-pressed="false">Remaining / Call Remainder</button>
+          <button class="filter" data-filter="distributed" aria-pressed="false">Distributed</button>
+        </div>
+        <p id="result-count" class="muted" aria-live="polite"></p>
+        <div id="sale-list" class="record-list"></div>
+      </section>
+      <section id="beneficiaries-panel" role="tabpanel" aria-labelledby="tab-beneficiaries" hidden>
+        <div class="section-heading"><div><h2 id="form-title">Add a beneficiary</h2><p class="muted">Keep family details and monthly entitlements in one place.</p></div></div>
+        <form id="beneficiary-form" class="panel">
+          <div class="form-grid">
+            <label>RC number<input name="rcNumber" required maxlength="40" autocomplete="off" placeholder="e.g. 102345678901"></label>
+            <label>Head of family<input name="headName" required maxlength="100" autocomplete="name" placeholder="Full name"></label>
+            <label>Phone number<input name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="10-digit mobile number"></label>
+            <label>Family members<input name="members" type="number" required min="1" max="100" step="1" inputmode="numeric" placeholder="e.g. 4"></label>
+            <label>Wheat quota (kg)<input name="wheat" type="number" required min="0" max="10000" step="0.01" inputmode="decimal" placeholder="e.g. 10"></label>
+            <label>Rice quota (kg)<input name="rice" type="number" required min="0" max="10000" step="0.01" inputmode="decimal" placeholder="e.g. 10"></label>
+          </div>
+          <p class="field-hint">All fields are required. Quotas are per family, per month.</p>
+          <div class="actions"><button id="save-beneficiary" class="button primary" type="submit">Add beneficiary</button><button id="cancel-edit" class="button secondary" type="button" hidden>Cancel editing</button></div>
+        </form>
+        <div class="section-heading"><h2>Manage beneficiaries</h2><span id="manage-count" class="count-chip">0 cards</span></div>
+        <label class="search-label" for="manage-search">Search registered families</label>
+        <input id="manage-search" type="search" placeholder="Search name, ration card or phone…" autocomplete="off">
+        <div id="manage-list" class="record-list"></div>
+      </section>
+      <section class="admin-panel" aria-labelledby="admin-title">
+        <div><p class="eyebrow">BACKUP &amp; ADMINISTRATION</p><h2 id="admin-title">Ready for the next month?</h2><p class="muted">Export regularly. Clearing app or browser data removes local records. Backups contain personal information; keep them private.</p></div>
+        <div class="actions"><button id="export-backup" class="button secondary">↓ Export Backup JSON</button><button id="import-backup" class="button secondary">↑ Restore backup</button><button id="reset-month" class="button outline-danger">Start New Month</button></div>
+        <input id="backup-file" type="file" accept="application/json,.json" hidden>
+        <p class="field-hint">Start New Month adds the month after the latest registered month. Use the selector above to distribute for any available month or check its remaining families. All previous sales stay available.</p>
+      </section>
+    </main>
+    <footer><p class="footer-address">Arajpur East PACS, Chausa, Madhepura, Bihar 853204</p><a class="footer-phone" href="tel:8757114064">Mobile No. 8757114064</a><p>Your records stay on this device.</p></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-message"></p><div class="actions"><button class="button secondary" value="cancel" autofocus>Cancel</button><button id="confirm-action" class="button primary" value="confirm">Confirm</button></div></form></dialog>
+  <noscript><p class="error-banner">Enable JavaScript to use this offline tracker.</p></noscript>
+</body>
+</html>

@@ -1,0 +1,30 @@
+# Local logs and generated deployment output
+*.log
+_site/
+.idea/
+.vscode/
+
+# Device records, personal backups and credentials must not enter the public repo
+data.json
+*backup*.json
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+*.pem
+*.key
+*.jks
+*.keystore
+key.properties
+
+# Flutter-generated and machine-specific files
+flutter_app/build/
+flutter_app/.dart_tool/
+flutter_app/.flutter-plugins*
+flutter_app/android/local.properties
+flutter_app/android/.gradle/
+flutter_app/.idea/
+*.iml
+*.apk
+*.aab

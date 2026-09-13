@@ -1,0 +1,60 @@
+name: Deploy PDS web app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - css/**
+      - js/**
+      - sw.js
+      - tests/**
+      - .github/workflows/deploy-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript and tracking behavior
+        run: |
+          node --check js/storage.js
+          node --check js/tracker.js
+          node --check js/app.js
+          node --check sw.js
+          node --test tests/storage.test.cjs
+      - uses: actions/configure-pages@v5
+      - name: Stage only the public web application
+        run: |
+          mkdir -p _site/css _site/js
+          cp index.html sw.js _site/
+          cp css/style.css _site/css/
+          cp js/app.js js/storage.js js/tracker.js _site/js/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
