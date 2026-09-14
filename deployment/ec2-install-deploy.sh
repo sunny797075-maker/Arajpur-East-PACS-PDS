@@ -112,6 +112,19 @@ SERVICE
 
 rm -rf /var/www/pds-connect/*
 tar -xzf /tmp/pds-web.tar.gz -C /var/www/pds-connect
+if [ -f /var/www/pds-connect/flutter_bootstrap.js ]; then
+  perl -0pi -e 's/serviceWorkerSettings:\s*\{\s*serviceWorkerVersion:\s*"[^"]*"\s*\}/serviceWorkerSettings: null/s' /var/www/pds-connect/flutter_bootstrap.js
+fi
+cat > /var/www/pds-connect/flutter_service_worker.js <<'WORKER'
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))));
+});
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+self.addEventListener('fetch', () => {});
+WORKER
 find /var/www/pds-connect -type d -exec chmod 755 {} \;
 find /var/www/pds-connect -type f -exec chmod 644 {} \;
 
@@ -125,6 +138,21 @@ server {
     index index.html;
 
     client_max_body_size 10m;
+
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        try_files \$uri =404;
+    }
+
+    location = /flutter_bootstrap.js {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        try_files \$uri =404;
+    }
+
+    location = /flutter_service_worker.js {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        try_files \$uri =404;
+    }
 
     location /api/ {
         proxy_pass http://127.0.0.1:3000/api/;
