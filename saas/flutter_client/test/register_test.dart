@@ -38,9 +38,6 @@ void main() {
           'ownerName': 'Owner',
           'email': 'owner@example.org',
           'mobile': '9876543210',
-          'state': 'Bihar',
-          'district': 'Madhepura',
-          'block': 'Chausa',
           'panchayat': 'Ward 1',
           'village': 'Locality',
           'address': 'Street 1',
@@ -63,6 +60,11 @@ void main() {
         expect(find.text('Your account is ready'), findsOneWidget);
         expect(find.text('DIST-000099'), findsOneWidget);
         expect(repo.submitted!['mobile'], '+919876543210');
+        final organization =
+            repo.submitted!['organization'] as Map<String, Object?>;
+        expect(organization['state'], 'Bihar');
+        expect(organization['district'], 'Madhepura');
+        expect(organization['block'], 'Chausa');
         expect(repo.submitted!.containsKey('role'), false);
         expect(tester.takeException(), isNull);
         await tester.ensureVisible(find.text('Continue to sign in'));

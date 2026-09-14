@@ -14,6 +14,67 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  static const _states = ['Bihar', 'Other'];
+  static const _districtsByState = <String, List<String>>{
+    'Bihar': [
+      'Araria',
+      'Arwal',
+      'Aurangabad',
+      'Banka',
+      'Begusarai',
+      'Bhagalpur',
+      'Bhojpur',
+      'Buxar',
+      'Darbhanga',
+      'East Champaran',
+      'Gaya',
+      'Gopalganj',
+      'Jamui',
+      'Jehanabad',
+      'Kaimur',
+      'Katihar',
+      'Khagaria',
+      'Kishanganj',
+      'Lakhisarai',
+      'Madhepura',
+      'Madhubani',
+      'Munger',
+      'Muzaffarpur',
+      'Nalanda',
+      'Nawada',
+      'Patna',
+      'Purnia',
+      'Rohtas',
+      'Saharsa',
+      'Samastipur',
+      'Saran',
+      'Sheikhpura',
+      'Sheohar',
+      'Sitamarhi',
+      'Siwan',
+      'Supaul',
+      'Vaishali',
+      'West Champaran',
+    ],
+    'Other': ['Other'],
+  };
+  static const _blocksByDistrict = <String, List<String>>{
+    'Madhepura': [
+      'Alamnagar',
+      'Bihariganj',
+      'Chausa',
+      'Gamharia',
+      'Ghailarh',
+      'Gwalpara',
+      'Kumarkhand',
+      'Madhepura',
+      'Murliganj',
+      'Puraini',
+      'Shankarpur',
+      'Singheshwar',
+      'Uda Kishanganj',
+    ],
+  };
   final _form = GlobalKey<FormState>();
   final _fields = <String, TextEditingController>{
     for (final key in [
@@ -39,6 +100,20 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _busy = false, _hidden = true;
   String? _error, _assignedId;
   String value(String key) => _fields[key]!.text.trim();
+
+  List<String> get _districtOptions =>
+      _districtsByState[value('state')] ?? const <String>[];
+  List<String> get _blockOptions =>
+      _blocksByDistrict[value('district')] ?? const <String>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _fields['state']!.text = 'Bihar';
+    _fields['district']!.text = 'Madhepura';
+    _fields['block']!.text = 'Chausa';
+  }
+
   @override
   void dispose() {
     for (final field in _fields.values) {
@@ -171,6 +246,42 @@ class _RegisterPageState extends State<RegisterPage> {
       return null;
     },
   );
+  Widget dropdownField(
+    String key,
+    String label,
+    List<String> options, {
+    ValueChanged<String>? afterChanged,
+  }) => DropdownButtonFormField<String>(
+    key: ValueKey(key),
+    value: options.contains(value(key)) ? value(key) : null,
+    isExpanded: true,
+    decoration: InputDecoration(labelText: label),
+    items: [
+      for (final option in options)
+        DropdownMenuItem(value: option, child: Text(option)),
+    ],
+    onChanged:
+        _busy
+            ? null
+            : (selected) {
+              if (selected == null) return;
+              setState(() => _fields[key]!.text = selected);
+              afterChanged?.call(selected);
+            },
+    validator: (input) {
+      if ((input ?? '').trim().isEmpty) return 'Choose $label.';
+      return null;
+    },
+  );
+
+  Widget blockField() {
+    final options = _blockOptions;
+    if (options.isEmpty) {
+      return field('block', 'Block / city', max: 80);
+    }
+    return dropdownField('block', 'Block / city', options);
+  }
+
   Widget section(String title, List<Widget> children, double width) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -364,9 +475,34 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ], constraints.maxWidth),
                       section('Location', [
-                        field('state', 'State', max: 80),
-                        field('district', 'District', max: 80),
-                        field('block', 'Block / city', max: 80),
+                        dropdownField(
+                          'state',
+                          'State',
+                          _states,
+                          afterChanged: (state) {
+                            final districts =
+                                _districtsByState[state] ?? const <String>[];
+                            _fields['district']!.text =
+                                districts.isNotEmpty ? districts.first : '';
+                            final blocks =
+                                _blocksByDistrict[value('district')] ??
+                                const <String>[];
+                            _fields['block']!.text =
+                                blocks.isNotEmpty ? blocks.first : '';
+                          },
+                        ),
+                        dropdownField(
+                          'district',
+                          'District',
+                          _districtOptions,
+                          afterChanged: (district) {
+                            final blocks =
+                                _blocksByDistrict[district] ?? const <String>[];
+                            _fields['block']!.text =
+                                blocks.isNotEmpty ? blocks.first : '';
+                          },
+                        ),
+                        blockField(),
                         field('panchayat', 'Panchayat / ward', max: 80),
                         field('village', 'Village / locality'),
                         field(
