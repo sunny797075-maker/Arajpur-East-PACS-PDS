@@ -31,12 +31,8 @@ class ApiAuthRepository implements AuthRepository {
     Map<String, Object?> body, {
     String? access,
   }) async {
-    final base = Uri.tryParse(baseUrl);
-    if (base == null ||
-        !base.hasAuthority ||
-        (base.scheme != 'https' &&
-            !(base.scheme == 'http' &&
-                ['localhost', '127.0.0.1', '10.0.2.2'].contains(base.host)))) {
+    final endpoint = apiEndpoint(path);
+    if (endpoint == null) {
       throw const AuthFailure(
         'Authentication API is not configured. Set PDS_API_URL to your HTTPS API.',
       );
@@ -45,7 +41,7 @@ class ApiAuthRepository implements AuthRepository {
       final csrf = csrfToken();
       final response = await _client
           .post(
-            Uri.parse('${baseUrl.replaceAll(RegExp(r'/$'), '')}/$path'),
+            endpoint,
             headers: {
               'Content-Type': 'application/json',
               if (access != null) 'Authorization': 'Bearer $access',
@@ -100,6 +96,23 @@ class ApiAuthRepository implements AuthRepository {
     } catch (_) {
       throw const AuthFailure('The server returned an unexpected response.');
     }
+  }
+
+  Uri? apiEndpoint(String path) {
+    final cleanBase = baseUrl.trim().replaceAll(RegExp(r'/$'), '');
+    if (cleanBase.isEmpty) return null;
+    final base = Uri.tryParse(cleanBase);
+    if (base == null) return null;
+    if (!base.hasAuthority && cleanBase.startsWith('/')) {
+      return Uri.parse('$cleanBase/$path');
+    }
+    if (!base.hasAuthority ||
+        (base.scheme != 'https' &&
+            !(base.scheme == 'http' &&
+                ['localhost', '127.0.0.1', '10.0.2.2'].contains(base.host)))) {
+      return null;
+    }
+    return Uri.parse('$cleanBase/$path');
   }
 
   Future<Session> _accept(

@@ -49,6 +49,26 @@ void main() {
       repository.dispose();
     },
   );
+  test('same-origin relative API path is accepted for hosted web', () async {
+    final repository = ApiAuthRepository(
+      '/api/v1',
+      client: MockClient((request) async {
+        expect(request.url.path, '/api/v1/auth/distributor/register');
+        return http.Response(jsonEncode({'distributorId': 'DIST-000123'}), 200);
+      }),
+    );
+    expect(
+      await repository.registerDistributor({
+        'organization': <String, Object?>{},
+        'email': 'owner@example.org',
+        'mobile': '+919876543210',
+        'password': 'my secure password',
+        'confirmPassword': 'my secure password',
+      }),
+      'DIST-000123',
+    );
+    repository.dispose();
+  });
   test('server role cannot be elevated through selected login page', () async {
     final repository = ApiAuthRepository(
       'https://pds.example/api/v1',

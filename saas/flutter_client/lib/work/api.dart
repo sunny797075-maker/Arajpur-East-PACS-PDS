@@ -21,10 +21,13 @@ class WorkApi {
     if (repo is! ApiAuthRepository) {
       throw const AuthFailure('Connect to the live API to use these modules.');
     }
-    final request = http.Request(
-      method,
-      Uri.parse('${repo.baseUrl.replaceAll(RegExp(r'/$'), '')}/$path'),
-    );
+    final endpoint = repo.apiEndpoint(path);
+    if (endpoint == null) {
+      throw const AuthFailure(
+        'Authentication API is not configured. Set PDS_API_URL to your HTTPS API.',
+      );
+    }
+    final request = http.Request(method, endpoint);
     request.headers.addAll({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${session.accessToken}',
