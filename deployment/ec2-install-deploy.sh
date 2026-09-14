@@ -114,6 +114,9 @@ rm -rf /var/www/pds-connect/*
 tar -xzf /tmp/pds-web.tar.gz -C /var/www/pds-connect
 if [ -f /var/www/pds-connect/flutter_bootstrap.js ]; then
   perl -0pi -e 's/serviceWorkerSettings:\s*\{\s*serviceWorkerVersion:\s*"[^"]*"\s*\}/serviceWorkerSettings: null/s' /var/www/pds-connect/flutter_bootstrap.js
+  bundle_version="$(date +%s)"
+  cp /var/www/pds-connect/main.dart.js "/var/www/pds-connect/main.${bundle_version}.dart.js"
+  perl -0pi -e "s/\"mainJsPath\":\\s*\"main\\.dart\\.js\"/\"mainJsPath\":\"main.${bundle_version}.dart.js\"/" /var/www/pds-connect/flutter_bootstrap.js
 fi
 cat > /var/www/pds-connect/flutter_service_worker.js <<'WORKER'
 self.addEventListener('install', (event) => {
@@ -150,6 +153,16 @@ server {
     }
 
     location = /flutter_service_worker.js {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        try_files \$uri =404;
+    }
+
+    location ~* ^/main\..*\.dart\.js$ {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        try_files \$uri =404;
+    }
+
+    location = /main.dart.js {
         add_header Cache-Control "no-store, no-cache, must-revalidate";
         try_files \$uri =404;
     }
