@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pds
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run node tools/setup-local.mjs first}
+      PDS_AUTH_PASSWORD: ${PDS_AUTH_PASSWORD:?Missing auth password}
+      PDS_TENANT_PASSWORD: ${PDS_TENANT_PASSWORD:?Missing tenant password}
+      PDS_PLATFORM_PASSWORD: ${PDS_PLATFORM_PASSWORD:?Missing platform password}
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pds_postgres:/var/lib/postgresql/data
+      - ./database/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./database/002_local_roles.sh:/docker-entrypoint-initdb.d/002_local_roles.sh:ro
+    healthcheck:
+      test: ['CMD-SHELL','pg_isready -U postgres -d pds']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+volumes:
+  pds_postgres:
